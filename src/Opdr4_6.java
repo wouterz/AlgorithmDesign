@@ -17,7 +17,16 @@ public class Opdr4_6 {
         "1 3 1\n" +
         "1 2 0\n" +
         "1";
-    InputStream is = new ByteArrayInputStream(sample.getBytes());
+
+    String simple = "3\n" +
+            "1 2 10 \n" +
+            "3 6 0\n" +
+            "1 2 10\n" +
+            "2\n" +
+            "1 2 1\n" +
+            "2 3 1\n" +
+            "1";
+    InputStream is = new ByteArrayInputStream(simple.getBytes());
     try {
       System.out.println(new Opdr4_6().solve(is));
     }
@@ -64,15 +73,27 @@ public class Opdr4_6 {
     for (int i = 0; i < methodcalls; i++) {
       line = reader.readLine();
       tokens = line.split(" ");
-      int from = Integer.parseInt(tokens[0]);
-      int to = Integer.parseInt(tokens[1]);
+      int from = Integer.parseInt(tokens[0]) - 1;
+      int to = Integer.parseInt(tokens[1]) - 1;
       int calls = Integer.parseInt(tokens[2]);
       if (calls > 0) {
+        Node fromNode = nodes.get(from);
+        Node toNode = nodes.get(to);
 
-        source.addEdge(nodes.get(to-1), calls*nodes.get(to-1).compiled);
-        nodes.get(to-1).addEdge(sink, calls*nodes.get(to-1).notCompiled);
+//        source.addEdge(nodes.get(to-1), calls*nodes.get(to-1).compiled);
+        source.getEdges().get(to).increaseCapacity(calls*toNode.compiled);
+//        source.getEdges().get(to).capacity += calls*toNode.compiled;
+//        source.getEdges().get(to).backwards.capacity += calls*toNode.compiled;
+//        source.getEdges().get(to).backwards.flow = source.getEdges().get(to-1).backwards.capacity;
 
-        overheadEdges.add(new Edge(calls, nodes.get(from-1), nodes.get(to-1)));
+
+//        toNode.addEdge(sink, calls*toNode.notCompiled);
+        toNode.getEdges().get(1).increaseCapacity(calls*toNode.notCompiled);
+//        toNode.getEdges().get(1).capacity += calls*toNode.notCompiled;
+//        toNode.getEdges().get(1).getBackwards().capacity += calls*toNode.notCompiled;
+//        toNode.getEdges().get(1).backwards.flow = toNode.getEdges().get(1).capacity;
+
+        overheadEdges.add(new Edge(calls, fromNode, toNode));
       }
     }
 
@@ -248,6 +269,12 @@ class Edge {
     flow += add;
     backwards.setFlow(getResidual());
 
+  }
+
+  public void increaseCapacity(int add) {
+    capacity += add;
+    backwards.capacity += add;
+    backwards.setFlow(getResidual());
   }
 
   public Edge getBackwards() {
